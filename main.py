@@ -9,6 +9,9 @@ import re , uuid
 app = FastAPI(title="Social Media Downloader API")
 short_links = {}
 # Shortened for brevity — use your full dict here
+@app.get("/")
+def root():
+    return {"message": "Auraflux API is live"}
 supported_platforms = {
     "YouTube": {
         "urls": [
