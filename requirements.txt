@@ -1,5 +1,4 @@
 fastapi
-yt_dlp
+uvicorn
 httpx
-re
-uuid
+yt-dlp
