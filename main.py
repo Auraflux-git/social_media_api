@@ -4,11 +4,20 @@ from yt_dlp import YoutubeDL
 from typing import Dict
 from urllib.parse import unquote , quote
 import httpx
-import re , uuid
+import re , uuid , os
 
 app = FastAPI(title="Social Media Downloader API")
 short_links = {}
 # Shortened for brevity — use your full dict here
+COOKIE_MAP = {
+    "youtube.com": "yt.txt",
+    "youtu.be": "yt.txt",
+    "instagram.com": "insta.txt",
+    "facebook.com": "fb.txt",
+    "fb.watch": "fb.txt",
+    "twitter.com": "x.txt",
+    "x.com": "x.txt"
+}
 supported_platforms = {
     "YouTube": {
         "urls": [
@@ -132,13 +141,41 @@ supported_platforms = {
 async def get_supported():
     return supported_platforms
 
+def get_cookie_file(url: str) -> str | None:
+    for domain, file in COOKIE_MAP.items():
+        if domain in url:
+            path = os.path.join("cookies", file)
+            return path if os.path.exists(path) else None
+    return None
+
 def extract_info(url: str) -> Dict:
+    cookie_file = get_cookie_file(url)
+
     ydl_opts = {
         'quiet': True,
         'no_warnings': True,
         'skip_download': True,
         'forcejson': True,
+        'extractor_args': {
+            'youtube': [
+                'client=android',
+                'player_client=android'
+            ]
+        },
+        'http_headers': {
+            'User-Agent': 'com.google.android.youtube/17.31.35 (Linux; U; Android 11)',
+            'Accept-Encoding': 'gzip, deflate',
+            'Accept': '*/*',
+            'Connection': 'keep-alive',
+        }
     }
+
+    if cookie_file:
+        ydl_opts['cookiefile'] = cookie_file
+    else:
+        # fallback mode — no cookies, best effort
+        ydl_opts['no_cookies_from_browser'] = True
+        ydl_opts['no_cookies'] = True
 
     try:
         with YoutubeDL(ydl_opts) as ydl:
@@ -160,57 +197,52 @@ def extract_info(url: str) -> Dict:
                 ext = f.get("ext")
                 height = f.get("height")
                 abr = f.get("abr")
-                url = f.get("url")
+                f_url = f.get("url")
                 acodec = f.get("acodec")
                 vcodec = f.get("vcodec")
                 format_id = f.get("format_id")
 
-                # Progressive = has both video + audio
                 if vcodec != "none" and acodec != "none":
                     key = (height, ext)
                     if key not in seen_progressive:
                         seen_progressive.add(key)
                         filename = f"{title.replace(' ', '_')}_{height}p.{ext}"
                         code = uuid.uuid4().hex[:6]
-                        short_links[code] = {"url": url, "filename": filename}
+                        short_links[code] = {"url": f_url, "filename": filename}
                         progressive_formats.append({
                             "format_id": format_id,
                             "ext": ext,
                             "height": height,
-                            "original_url": url,
+                            "original_url": f_url,
                             "download_url": f"http://localhost:8000/d/{code}"
                         })
-
-                # Video-only
                 elif vcodec != "none" and acodec == "none":
                     key = (height, ext)
                     if key not in seen_video:
                         seen_video.add(key)
                         filename = f"{title.replace(' ', '_')}_{height}p_video.{ext}"
                         code = uuid.uuid4().hex[:6]
-                        short_links[code] = {"url": url, "filename": filename}
+                        short_links[code] = {"url": f_url, "filename": filename}
                         video_formats.append({
                             "format_id": format_id,
                             "ext": ext,
                             "height": height,
-                            "original_url": url,
+                            "original_url": f_url,
                             "download_url": f"http://localhost:8000/d/{code}",
-                            "suggestion": "This is a video-only format. It has no audio. To get sound, download the matching audio and merge using FFmpeg or use the 'Merged Download' option if available."
+                            "suggestion": "Video-only. Download matching audio to merge with FFmpeg."
                         })
-
-                # Audio-only
                 elif vcodec == "none" and acodec != "none":
                     key = (abr, ext)
                     if key not in seen_audio:
                         seen_audio.add(key)
                         filename = f"{title.replace(' ', '_')}_{abr}kbps_audio.{ext}"
                         code = uuid.uuid4().hex[:6]
-                        short_links[code] = {"url": url, "filename": filename}
+                        short_links[code] = {"url": f_url, "filename": filename}
                         audio_formats.append({
                             "format_id": format_id,
                             "ext": ext,
                             "abr": abr,
-                            "original_url": url,
+                            "original_url": f_url,
                             "download_url": f"http://localhost:8000/d/{code}"
                         })
 
