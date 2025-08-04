@@ -9,7 +9,7 @@ import re , uuid , os
 app = FastAPI(title="Social Media Downloader API")
 short_links = {}
 # Shortened for brevity — use your full dict here
-<<<<<<< HEAD
+
 COOKIE_MAP = {
     "youtube.com": "yt.txt",
     "youtu.be": "yt.txt",
@@ -19,11 +19,11 @@ COOKIE_MAP = {
     "twitter.com": "x.txt",
     "x.com": "x.txt"
 }
-=======
+
 @app.get("/")
 def root():
     return {"message": "Auraflux API is live"}
->>>>>>> a305e91c12907fdccdc3c8149f13f719a9c54d82
+
 supported_platforms = {
     "YouTube": {
         "urls": [
