@@ -9,6 +9,7 @@ import re , uuid , os
 app = FastAPI(title="Social Media Downloader API")
 short_links = {}
 # Shortened for brevity — use your full dict here
+<<<<<<< HEAD
 COOKIE_MAP = {
     "youtube.com": "yt.txt",
     "youtu.be": "yt.txt",
@@ -18,6 +19,11 @@ COOKIE_MAP = {
     "twitter.com": "x.txt",
     "x.com": "x.txt"
 }
+=======
+@app.get("/")
+def root():
+    return {"message": "Auraflux API is live"}
+>>>>>>> a305e91c12907fdccdc3c8149f13f719a9c54d82
 supported_platforms = {
     "YouTube": {
         "urls": [
@@ -156,6 +162,11 @@ def extract_info(url: str) -> Dict:
         'no_warnings': True,
         'skip_download': True,
         'forcejson': True,
+<<<<<<< HEAD
+=======
+        'no_cookies_from_browser': True,
+        'no_cookies': True,
+>>>>>>> a305e91c12907fdccdc3c8149f13f719a9c54d82
         'extractor_args': {
             'youtube': [
                 'client=android',
@@ -170,12 +181,15 @@ def extract_info(url: str) -> Dict:
         }
     }
 
+<<<<<<< HEAD
     if cookie_file:
         ydl_opts['cookiefile'] = cookie_file
     else:
         # fallback mode — no cookies, best effort
         ydl_opts['no_cookies_from_browser'] = True
         ydl_opts['no_cookies'] = True
+=======
+>>>>>>> a305e91c12907fdccdc3c8149f13f719a9c54d82
 
     try:
         with YoutubeDL(ydl_opts) as ydl:
