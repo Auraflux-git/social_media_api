@@ -162,11 +162,8 @@ def extract_info(url: str) -> Dict:
         'no_warnings': True,
         'skip_download': True,
         'forcejson': True,
-<<<<<<< HEAD
-=======
         'no_cookies_from_browser': True,
         'no_cookies': True,
->>>>>>> a305e91c12907fdccdc3c8149f13f719a9c54d82
         'extractor_args': {
             'youtube': [
                 'client=android',
@@ -180,17 +177,12 @@ def extract_info(url: str) -> Dict:
             'Connection': 'keep-alive',
         }
     }
-
-<<<<<<< HEAD
     if cookie_file:
         ydl_opts['cookiefile'] = cookie_file
     else:
         # fallback mode — no cookies, best effort
         ydl_opts['no_cookies_from_browser'] = True
         ydl_opts['no_cookies'] = True
-=======
->>>>>>> a305e91c12907fdccdc3c8149f13f719a9c54d82
-
     try:
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
